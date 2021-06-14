@@ -24,6 +24,7 @@ void signal_ctr_c(int signum) {
 int main(int argc, char **argv) {
     int pipefd[2];
     int ret, wstat;
+    pid_t pgid = getpgrp();
 
     //char **param={"EXENAME", NULL};
     printf("parent's group id is %d\n", getpgrp());
@@ -31,7 +32,7 @@ int main(int argc, char **argv) {
     pid1 = fork();   //產生第一個child
     if (pid1==0) {
         printf("1st child's group id is %d\n", getpgrp());
-        setpgid(0, 0);  //將第一個child設定為新的group
+        setpgid(0, pgid);  //將第一個child設定為新的group
         printf("1st child's new group id is %d\n", getpgrp());
 
         close(1);   //關閉stdout
@@ -46,7 +47,7 @@ int main(int argc, char **argv) {
         pid2 = fork();//產生第二個child
         if (pid2==0) {
             printf("2nd child's group id is %d\n", getpgrp());
-            setpgid(0, pid1);   //第二個child加入第一個child的group
+            setpgid(0, pgid);   //第二個child加入第一個child的group
             printf("2nd child's new group id is %d\n", getpgrp());
 
             close(0);   //關閉stdin
@@ -60,7 +61,7 @@ int main(int argc, char **argv) {
     //parent一定要記得關掉pipe不然wc不會結束（因為沒有接到EOF）
     close(pipefd[0]); close(pipefd[1]);
     /*parent註冊signal handler*/
-    signal(SIGINT, signal_ctr_c);
+    //signal(SIGINT, signal_ctr_c);
     printf("child %d\n",wait(&wstat));
     printf("child %d\n",wait(&wstat));
 }
